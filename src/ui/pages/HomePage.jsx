@@ -1,14 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-	FaTrophy,
-	FaHome,
-	FaCog,
-	FaChartBar,
-	FaGamepad,
-} from 'react-icons/fa';
+import { FaTrophy, FaHome, FaCog, FaChartBar, FaGamepad } from 'react-icons/fa';
 import MatchHistoryTab from '../components/MatchHistoryTab';
 import LiveMatchTab from '../components/LiveMatchTab';
+import SettingsTab from '../components/SettingsTab';
 import TopChampions from '../components/TopChampions';
 import RecommendedPick from '../components/RecommendedPick';
 import StatisticsSections from '../components/StatisticsSections';
@@ -19,11 +14,7 @@ export default function HomePage() {
 	const navigate = useNavigate();
 	const [activeTab, setActiveTab] = useState('home');
 
-	const {
-		userCredentials,
-		accountData,
-		isDataLoaded,
-	} = useData();
+	const { userCredentials, accountData, isDataLoaded } = useData();
 
 	const [summonerData, setSummonerData] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
@@ -115,14 +106,7 @@ export default function HomePage() {
 				return <LiveMatchTab />;
 
 			case 'settings':
-				return (
-					<div className="tab-content">
-						<h1 className="tab-title">Settings</h1>
-						<p className="tab-subtitle">
-							Configure your application preferences
-						</p>
-					</div>
-				);
+				return <SettingsTab />;
 
 			default:
 				return (

@@ -22,7 +22,7 @@ export const DataProvider = ({ children }) => {
 	const [hasMoreMatches, setHasMoreMatches] = useState(true);
 	const [isLoadingMatches, setIsLoadingMatches] = useState(false);
 
-	const loadGameData = async () => {
+	const loadStaticGameData = async () => {
 		try {
 			const [championsData, itemsData] = await Promise.all([
 				window.riot.getChampionData(),
@@ -31,8 +31,11 @@ export const DataProvider = ({ children }) => {
 
 			setChampions(championsData || {});
 			setItems(itemsData || {});
+		} catch (error) {}
+	};
 
-			console.log('DataContext: Loading manual matches...');
+	const loadUserData = async (credentials = null) => {
+		try {
 			const storedManualMatches =
 				window.storage?.getItem('manualMatches') || [];
 			const parsedManualMatches = storedManualMatches.map((match) => ({
@@ -41,16 +44,16 @@ export const DataProvider = ({ children }) => {
 			}));
 			setManualMatches(parsedManualMatches);
 
-			const credentials = window.storage?.getItem('userCredentials');
-			if (credentials) {
-				setUserCredentials(credentials);
+			const userCreds =
+				credentials || window.storage?.getItem('userCredentials');
+			if (userCreds) {
+				setUserCredentials(userCreds);
 
 				const account = await window.riot.getAccount(
-					credentials.username,
-					credentials.tagLine
+					userCreds.username,
+					userCreds.tagLine
 				);
 				if (account && account.ok !== false) {
-					console.log('DataContext: Account data loaded successfully');
 					setAccountData(account);
 
 					await Promise.all([
@@ -58,6 +61,9 @@ export const DataProvider = ({ children }) => {
 						loadMasteryData(account.puuid),
 					]);
 				} else {
+					if (!credentials) {
+						window.storage.removeItem('userCredentials');
+					}
 					await loadCachedData();
 				}
 			} else {
@@ -66,6 +72,17 @@ export const DataProvider = ({ children }) => {
 			setIsDataLoaded(true);
 		} catch (error) {
 			await loadCachedData();
+			setIsDataLoaded(true);
+		}
+	};
+
+	const initializeData = async () => {
+		await loadStaticGameData();
+
+		const credentials = window.storage?.getItem('userCredentials');
+		if (credentials) {
+			await loadUserData(credentials);
+		} else {
 			setIsDataLoaded(true);
 		}
 	};
@@ -148,7 +165,6 @@ export const DataProvider = ({ children }) => {
 		try {
 			const mastery = await window.riot.getChampionMasteries(puuid);
 			if (mastery && mastery.ok === false) {
-
 				const storedMastery = window.storage?.getItem('championMastery') || [];
 				setMasteryData(storedMastery);
 			} else if (mastery && Array.isArray(mastery)) {
@@ -195,7 +211,7 @@ export const DataProvider = ({ children }) => {
 
 	useEffect(() => {
 		if (window.storage && window.riot) {
-			loadGameData();
+			initializeData();
 		}
 	}, []);
 
@@ -213,6 +229,7 @@ export const DataProvider = ({ children }) => {
 		refreshData,
 		loadMoreMatches,
 		updateManualMatches,
+		loadUserData,
 		setUserCredentials,
 		setAccountData,
 	};

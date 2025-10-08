@@ -149,8 +149,6 @@ export default function MatchRow({
 					possibleRoles.includes(p.individualPosition)
 			);
 
-			console.log('Found opponent:', opponent);
-
 			if (opponent) {
 				const champion = Object.values(champions).find(
 					(c) => c.key === opponent.championId?.toString()

@@ -4,6 +4,9 @@ import { app, BrowserWindow, nativeImage, ipcMain, Menu } from 'electron';
 // Node.js built-in modules
 import path from 'path';
 import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Application constants
 const DIST_REACT_PATH = '/dist-react/index.html';
@@ -15,6 +18,7 @@ const DEFAULT_WINDOW_HEIGHT = 600;
 const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 const APP_PATH = app.getAppPath();
 const ICON_PATH = path.join(APP_PATH, 'icon.png');
+const RIOT_API_KEY = process.env.RIOT_PROJECT_API_KEY.trim();
 
 // Application state
 let mainWindow = null;
@@ -89,7 +93,6 @@ app.on('window-all-closed', () => {
  * @returns {string} - The full URL for the API request
  */
 function buildRiotApiUrl(endpoint, region) {
-	const RIOT_API_KEY = 'RGAPI-07f56732-0892-4bf0-9aee-482d3c4bae7e';
 	const separator = endpoint.includes('?') ? '&' : '?';
 	return `https://${region}.api.riotgames.com${endpoint}${separator}api_key=${RIOT_API_KEY}`;
 }
@@ -165,6 +168,7 @@ ipcMain.handle(
 			region
 		);
 		const response = await fetch(url);
+		console.log('Response:', response);
 
 		if (!response.ok) {
 			return { ok: false, message: getRiotErrorMessage(response.status) };
@@ -233,7 +237,6 @@ ipcMain.handle(
 		if (queue) url += `&queue=${queue}`;
 		if (type) url += `&type=${type}`;
 		const response = await fetch(url);
-		console.log('Response:', response);
 
 		if (!response.ok) {
 			return { ok: false, message: getRiotErrorMessage(response.status) };

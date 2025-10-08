@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaCompass, FaHashtag, FaUser } from 'react-icons/fa6';
 import PrimaryButton from '../components/PrimaryButton';
+import { useData } from '../contexts/DataContext';
 
 export default function LoginPage() {
 	const [username, setUsername] = useState('');
 	const [tagLine, setTagLine] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const navigate = useNavigate();
+	const { loadUserData } = useData();
 
 	const handleLogin = async (e) => {
 		e.preventDefault();
@@ -26,23 +28,25 @@ export default function LoginPage() {
 
 			if (accountData?.ok === false) {
 				alert(accountData.message);
-				setIsLoading(false);
 				return;
 			}
 
-			window.storage.setItem('userCredentials', {
+			const credentials = {
 				username: username.trim(),
 				tagLine: tagLine.trim(),
 				puuid: accountData.puuid,
-			});
+			};
+
+			window.storage.setItem('userCredentials', credentials);
+
+			await loadUserData(credentials);
 
 			navigate('/home');
 		} catch (error) {
-			console.error(error);
 			alert('Failed to connect to Riot Games. Please try again.');
+		} finally {
+			setIsLoading(false);
 		}
-
-		setIsLoading(false);
 	};
 
 	return (

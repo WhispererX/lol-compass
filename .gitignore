@@ -23,3 +23,7 @@ dist-react
 *.njsproj
 *.sln
 *.sw?
+
+.env
+.env.local
+.env.production

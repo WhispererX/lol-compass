@@ -4,12 +4,47 @@ let region = 'europe';
 let subRegion = 'euw1';
 let version = '15.19.1';
 
+const loadSettings = () => {
+	try {
+		const savedSettings = localStorage.getItem('appSettings');
+		if (savedSettings) {
+			const settings = JSON.parse(savedSettings);
+			region = settings.region || 'europe';
+			subRegion = settings.subRegion || 'euw1';
+			version = settings.version || '15.19.1';
+		}
+	} catch (error) {
+		console.error('Failed to load settings:', error);
+	}
+};
+
+const saveSettings = () => {
+	try {
+		const settings = { region, subRegion, version };
+		localStorage.setItem('appSettings', JSON.stringify(settings));
+	} catch (error) {
+		console.error('Failed to save settings:', error);
+	}
+};
+
+loadSettings();
+
 contextBridge.exposeInMainWorld('api', {
 	getRegion: () => region,
 	getSubRegion: () => subRegion,
-	setRegion: (newRegion) => (region = newRegion),
-	setSubRegion: (newSubRegion) => (subRegion = newSubRegion),
+	setRegion: (newRegion) => {
+		region = newRegion;
+		saveSettings();
+	},
+	setSubRegion: (newSubRegion) => {
+		subRegion = newSubRegion;
+		saveSettings();
+	},
 	getVersion: () => version,
+	setVersion: (newVersion) => {
+		version = newVersion;
+		saveSettings();
+	},
 });
 
 contextBridge.exposeInMainWorld('storage', {
