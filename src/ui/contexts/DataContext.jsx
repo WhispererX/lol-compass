@@ -47,13 +47,12 @@ export const DataProvider = ({ children }) => {
 			const userCreds =
 				credentials || window.storage?.getItem('userCredentials');
 			if (userCreds) {
-				setUserCredentials(userCreds);
-
 				const account = await window.riot.getAccount(
 					userCreds.username,
 					userCreds.tagLine
 				);
 				if (account && account.ok !== false) {
+					setUserCredentials(userCreds);
 					setAccountData(account);
 
 					await Promise.all([
@@ -61,30 +60,28 @@ export const DataProvider = ({ children }) => {
 						loadMasteryData(account.puuid),
 					]);
 				} else {
-					if (!credentials) {
-						window.storage.removeItem('userCredentials');
-					}
+					window.storage.removeItem('userCredentials');
+					setUserCredentials(null);
+					setAccountData(null);
 					await loadCachedData();
 				}
 			} else {
+				setUserCredentials(null);
+				setAccountData(null);
 				await loadCachedData();
 			}
-			setIsDataLoaded(true);
 		} catch (error) {
+			window.storage.removeItem('userCredentials');
+			setUserCredentials(null);
+			setAccountData(null);
 			await loadCachedData();
-			setIsDataLoaded(true);
 		}
 	};
 
 	const initializeData = async () => {
 		await loadStaticGameData();
-
-		const credentials = window.storage?.getItem('userCredentials');
-		if (credentials) {
-			await loadUserData(credentials);
-		} else {
-			setIsDataLoaded(true);
-		}
+		await loadUserData();
+		setIsDataLoaded(true);
 	};
 
 	const loadCachedData = async () => {
